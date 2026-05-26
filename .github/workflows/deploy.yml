@@ -1,0 +1,30 @@
+name: Deploy HTML
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create HTML file
+        run: |
+          cat > index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="th">
+          <head><meta charset="UTF-8"><title>GitHub Actions Deploy</title></head>
+          <body>
+            <h1>Hello from GitHub Actions!</h1>
+            <p>Deployed via self-hosted runner on Kali</p>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to Nginx
+        run: |
+          cp index.html /var/www/html/index.html
+          echo "Deployed!"
