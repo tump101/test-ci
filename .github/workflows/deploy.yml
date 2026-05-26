@@ -18,7 +18,7 @@ jobs:
           <html lang="th">
           <head><meta charset="UTF-8"><title>GitHub Actions Deploy(NEW01)</title></head>
           <body>
-            <h1>Hello from GitHub Actions!</h1>
+            <h1>Hello from GitHub Actions!(NEW01)</h1>
             <p>Deployed via self-hosted runner on Kali</p>
           </body>
           </html>
