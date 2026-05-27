@@ -22,7 +22,7 @@ jobs:
           </style>
           </head>
           <body>
-          <h1>Hello from GitLab CI/CD!(gitlab)</h1>
+          <h1>Hello from GitLab CI/CD!(GitHub)</h1>
           <p>Deploy สำเร็จแล้ว</p>
           </body>
           </html>
