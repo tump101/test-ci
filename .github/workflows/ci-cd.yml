@@ -13,15 +13,15 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # [2] BUILD & INSTALL: ติดตั้ง dependencies และทำการทดสอบ Build
+      # [2] BUILD & INSTALL: ติดตั้ง dependencies 
       - name: Install Dependencies
-        run: npm ci # ใช้ npm ci จะเสถียรและเคลียร์กว่าสำหรับ CI/CD
+        run: npm ci
 
-      # [3] TEST: รัน Unit Test (หากในโปรเจกต์มี Jest หรือ Vitest)
-      # ถ้ายังไม่มี script test ให้ข้ามขั้นตอนนี้ หรือปล่อยไว้ (npm test มักจะผ่านถ้าไม่มีอะไร)
+      # [แก้ไขจุดที่ 1] TEST: สั่งรัน Jest Test จริงที่เราเขียนไว้ (เอาแท็กข้ามออก)
       - name: Run Tests
-        run: npm test -- --passWithNoTests
+        run: npm test
 
+      # ส่วนของ Build โค้ด
       - name: Build Next.js Application
         run: npm run build
 
@@ -34,9 +34,9 @@ jobs:
           # ย้ายเข้าไปในโฟลเดอร์ปลายทางเพื่อสั่งรันโปรเซส
           cd /var/www/nextjs
           
-          # ใช้ PM2 จัดการโปรเซส เพื่อให้ Next.js ทำงานเป็น Background Server ตลอดเวลา
-          # คำสั่งนี้จะช่วยตรวจสอบว่ามีโปรเซสชื่อ "nextjs-app" อยู่ไหม ถ้าไม่มีให้สร้างใหม่ ถ้ามีให้ reload โค้ดใหม่แบบไร้รอยต่อ
-          pm2 describe nextjs-app > /dev/null && pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- run start
+          # [แก้ไขจุดที่ 2] ปรับคำสั่ง PM2 ให้รันตัว 'next' แทน 'npm run start' เพื่อความสเถียรในการทำงานบน Server
+          # โดยเราจะชี้ไปที่ตัว next ใน node_modules ตรงๆ เพื่อป้องกันปัญหา pm2 หาคำสั่งไม่เจอ
+          pm2 describe nextjs-app > /dev/null && pm2 reload nextjs-app || pm2 start ./node_modules/next/dist/bin/next --name "nextjs-app" -- start
           
           # บันทึกสถานะ PM2
           pm2 save
