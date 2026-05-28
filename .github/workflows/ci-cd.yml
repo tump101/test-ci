@@ -1,0 +1,42 @@
+name: Next.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ] # รันเฉพาะตอนที่ push เข้า main branch
+
+jobs:
+  pipeline:
+    runs-on: self-hosted # บังคับให้รันบนเครื่อง Kali Linux ของเรา
+    
+    steps:
+      # [1] CODE: ดึงโค้ดล่าสุดจาก GitHub ลงเครื่อง Server
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # [2] BUILD & INSTALL: ติดตั้ง dependencies และทำการทดสอบ Build
+      - name: Install Dependencies
+        run: npm ci # ใช้ npm ci จะเสถียรและเคลียร์กว่าสำหรับ CI/CD
+
+      # [3] TEST: รัน Unit Test (หากในโปรเจกต์มี Jest หรือ Vitest)
+      # ถ้ายังไม่มี script test ให้ข้ามขั้นตอนนี้ หรือปล่อยไว้ (npm test มักจะผ่านถ้าไม่มีอะไร)
+      - name: Run Tests
+        run: npm test -- --passWithNoTests
+
+      - name: Build Next.js Application
+        run: npm run build
+
+      # [4] DEPLOY: ย้ายไฟล์ที่ Build เสร็จแล้วไปโฟลเดอร์ปลายทาง และสั่ง Restart เว็บ
+      - name: Deploy to Production Folder
+        run: |
+          # คัดลอกไฟล์ทั้งหมดไปยังโฟลเดอร์ /var/www/nextjs
+          rsync -av --delete ./ /var/www/nextjs/
+          
+          # ย้ายเข้าไปในโฟลเดอร์ปลายทางเพื่อสั่งรันโปรเซส
+          cd /var/www/nextjs
+          
+          # ใช้ PM2 จัดการโปรเซส เพื่อให้ Next.js ทำงานเป็น Background Server ตลอดเวลา
+          # คำสั่งนี้จะช่วยตรวจสอบว่ามีโปรเซสชื่อ "nextjs-app" อยู่ไหม ถ้าไม่มีให้สร้างใหม่ ถ้ามีให้ reload โค้ดใหม่แบบไร้รอยต่อ
+          pm2 describe nextjs-app > /dev/null && pm2 reload nextjs-app || pm2 start npm --name "nextjs-app" -- run start
+          
+          # บันทึกสถานะ PM2
+          pm2 save
